@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Simplix - Bug Reporter",
+  "description": "Report bugs quickly on Lusha.com",
+  "version": "0.1",
+  "permissions": ["storage"],
+  "icons": {
+    "16": "images/logo16.png",
+    "48": "images/logo48.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.lusha.com/*"],
+      "js": ["main.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
