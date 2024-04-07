@@ -9,6 +9,10 @@ const entryPoints = {
     path.resolve(__dirname, "src", "main.ts"),
     path.resolve(__dirname, "scss", "main.scss"),
   ],
+  content: [
+    path.resolve(__dirname, "src", "content.ts"),
+    path.resolve(__dirname, "scss", "content.scss"),
+  ],
   background: path.resolve(__dirname, "src", "background.ts"),
 };
 
