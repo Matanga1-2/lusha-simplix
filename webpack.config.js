@@ -13,6 +13,7 @@ const entryPoints = {
     path.resolve(__dirname, "src", "content.ts"),
     path.resolve(__dirname, "scss", "content.scss"),
   ],
+  actions: path.resolve(__dirname, "src", "actions.ts"),
   background: path.resolve(__dirname, "src", "background.ts"),
 };
 

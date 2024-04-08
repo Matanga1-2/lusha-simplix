@@ -70,16 +70,28 @@
   }
 }
 
-#simplix-success-notification {
+// Base notification style
+.notification-base {
   position: fixed;
-  top: 20px; // Position it from the top instead of bottom
-  right: 20px; // Align to the right
-  background-color: #4caf50; // Green background for success
+  top: 20px;
+  right: 20px;
   color: white;
-  padding: 10px 20px; // Some horizontal padding for better visual appearance
+  padding: 10px 20px;
   border-radius: 4px;
-  z-index: 10002; // Ensure it's above other elements
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); // Optional: add shadow for depth
-  font-size: 1.5rem; // Set font size if needed
-  display: none; // Hide by default, show with JavaScript
+  z-index: 10002;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 1.5rem;
+  display: block; // Show by default, or control via JS
+}
+
+// Success notification style
+#simplix-success-notification {
+  @extend .notification-base;
+  background-color: #4caf50; // Green background for success
+}
+
+// Error notification style
+#simplix-error-notification {
+  @extend .notification-base;
+  background-color: #f44336; // Red background for errors
 }

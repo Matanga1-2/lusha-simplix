@@ -1,4 +1,12 @@
+import { sendFeedbackData } from "./actions";
+
 let popupTextarea: HTMLTextAreaElement; // Define the variable with an explicit type
+
+// Define an enum for notification types
+enum NotificationType {
+  Success = "success",
+  Error = "error",
+}
 
 function initialize() {
   console.log("Initializing script");
@@ -102,45 +110,21 @@ function showPopup() {
 }
 
 function handleSubmit() {
-  // Retrieve the saved email from storage
-  chrome.storage.local.get("email", (result) => {
-    // Make sure the email is retrieved successfully
-    if (chrome.runtime.lastError) {
-      console.error(
-        "Error retrieving the email from storage:",
-        chrome.runtime.lastError
-      );
-      return;
+  const feedback = popupTextarea.value;
+
+  // Send feedback and handle the callback response
+  sendFeedbackData(feedback, (success) => {
+    if (success) {
+      console.log("Feedback was sent successfully.");
+      // Here you might want to show a success notification to the user
+      showNotification("Feedback sent successfully.", NotificationType.Success);
+    } else {
+      console.error("Failed to send feedback.");
+      // Here you might want to show an error notification to the user
+      showNotification("Failed to send feedback.", NotificationType.Error);
     }
 
-    const email = result.email;
-    const feedback = popupTextarea.value;
-
-    // Prepare the data to send
-    const data = {
-      email: email,
-      feedback: feedback,
-    };
-
-    // Send a message to the background script to perform the fetch
-    chrome.runtime.sendMessage(
-      {
-        action: "sendFeedback",
-        data: {
-          email: email,
-          feedback: feedback,
-        },
-      },
-      (response) => {
-        if (response.status === "success") {
-          showSuccessNotification("Feedback sent successfully!");
-        } else {
-          console.error("Failed to send feedback:", response.error);
-        }
-      }
-    );
-
-    // Clear the textarea and hide the popup
+    // Whether successful or not, clear the textarea and hide the popup
     popupTextarea.value = "";
     const popupContainer = document.getElementById("simplix-popup-container");
     if (popupContainer) {
@@ -149,11 +133,15 @@ function handleSubmit() {
   });
 }
 
-function showSuccessNotification(message: string) {
+function showNotification(message: string, type: NotificationType) {
   // Create the notification element (style this in CSS)
   const notification = document.createElement("div");
   notification.textContent = message;
-  notification.id = "simplix-success-notification";
+  if (type == NotificationType.Success) {
+    notification.id = "simplix-success-notification";
+  } else if (type == NotificationType.Error) {
+    notification.id = "simplix-error-notification";
+  }
   notification.style.display = "block"; // Show the notification
 
   // Append and remove after some time, e.g., 3 seconds

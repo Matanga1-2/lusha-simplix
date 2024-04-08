@@ -7,7 +7,7 @@ function isError(e: unknown): e is Error {
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.action === "sendFeedback") {
-    const { email, feedback } = msg.data;
+    const { email, feedback, userAgent } = msg.data;
     try {
       // Perform the fetch operation
       fetch("https://hooks.zapier.com/hooks/catch/14134904/3pqoek3/", {
@@ -18,6 +18,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         body: JSON.stringify({
           email: email,
           feedback: feedback,
+          userAgent: userAgent,
         }),
       })
         .then((response) => {
