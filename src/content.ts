@@ -102,17 +102,51 @@ function showPopup() {
 }
 
 function handleSubmit() {
-  // Clear the textarea
-  popupTextarea.value = "";
+  // Retrieve the saved email from storage
+  chrome.storage.local.get("email", (result) => {
+    // Make sure the email is retrieved successfully
+    if (chrome.runtime.lastError) {
+      console.error(
+        "Error retrieving the email from storage:",
+        chrome.runtime.lastError
+      );
+      return;
+    }
 
-  // Show a success message to the user
-  showSuccessNotification("Feedback sent successfully!");
+    const email = result.email;
+    const feedback = popupTextarea.value;
 
-  // Hide the popup container
-  const popupContainer = document.getElementById("simplix-popup-container");
-  if (popupContainer) {
-    popupContainer.style.display = "none";
-  }
+    // Prepare the data to send
+    const data = {
+      email: email,
+      feedback: feedback,
+    };
+
+    // Send a message to the background script to perform the fetch
+    chrome.runtime.sendMessage(
+      {
+        action: "sendFeedback",
+        data: {
+          email: email,
+          feedback: feedback,
+        },
+      },
+      (response) => {
+        if (response.status === "success") {
+          showSuccessNotification("Feedback sent successfully!");
+        } else {
+          console.error("Failed to send feedback:", response.error);
+        }
+      }
+    );
+
+    // Clear the textarea and hide the popup
+    popupTextarea.value = "";
+    const popupContainer = document.getElementById("simplix-popup-container");
+    if (popupContainer) {
+      popupContainer.style.display = "none";
+    }
+  });
 }
 
 function showSuccessNotification(message: string) {
