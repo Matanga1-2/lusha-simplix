@@ -3,7 +3,7 @@
   "name": "Simplix - Bug Reporter",
   "description": "Report bugs quickly on Lusha.com",
   "version": "0.1",
-  "permissions": ["storage"],
+  "permissions": ["storage", "tabs"],
   "host_permissions": ["*://hooks.zapier.com/*"],
   "icons": {
     "16": "images/logo16.png",

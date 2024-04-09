@@ -1,45 +1,54 @@
-export function sendFeedbackData(
-  feedback: string,
-  callback: (success: boolean) => void
-) {
-  // Retrieve the saved email from storage
+function getEmailFromStorage(callback: (email: string | null) => void) {
   chrome.storage.local.get("email", (result) => {
     if (chrome.runtime.lastError) {
       console.error(
         "Error retrieving the email from storage:",
         chrome.runtime.lastError.message
       );
-      callback(false); // Indicate failure through the callback
+      callback(null); // Pass null to indicate failure
+    } else {
+      callback(result.email); // Pass the retrieved email
+    }
+  });
+}
+
+export function sendFeedbackData(
+  feedback: string,
+  callback: (success: boolean) => void
+) {
+  // First, get the email from storage
+  getEmailFromStorage((email) => {
+    if (email === null) {
+      callback(false);
       return;
     }
 
     const userAgent = navigator.userAgent; // Get the user agent from the navigator object
 
-    // Prepare the data to send
+    // Prepare the data to send, excluding the URL details
     const data = {
-      email: result.email,
+      email: email,
       feedback: feedback,
       userAgent: userAgent,
     };
 
-    // Send the data to your background script
+    // Now send the data to your background script
     chrome.runtime.sendMessage(
       {
         action: "sendFeedback",
         data: data,
       },
       (response) => {
-        if (chrome.runtime.lastError) {
-          // Handle message sending error
+        // Handle the response
+        if (chrome.runtime.lastError || !response?.success) {
           console.error(
-            "Error sending message:",
-            chrome.runtime.lastError.message
+            "Feedback sending failed.",
+            chrome.runtime.lastError?.message
           );
-          callback(false); // Indicate failure through the callback
+          callback(false);
         } else {
-          // Process the response here
-          console.log("Feedback response:", response);
-          callback(true); // Indicate success through the callback
+          console.log("Feedback sent successfully.");
+          callback(true);
         }
       }
     );
