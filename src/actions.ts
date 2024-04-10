@@ -14,22 +14,24 @@ function getEmailFromStorage(callback: (email: string | null) => void) {
 
 export function sendFeedbackData(
   feedback: string,
+  image: string, // Add a parameter for the image URL
   callback: (success: boolean) => void
 ) {
   // First, get the email from storage
   getEmailFromStorage((email) => {
     if (email === null) {
-      callback(false);
+      callback(false); // Call the callback with false if email is not found
       return;
     }
 
     const userAgent = navigator.userAgent; // Get the user agent from the navigator object
 
-    // Prepare the data to send, excluding the URL details
+    // Prepare the data to send, including the image URL
     const data = {
       email: email,
       feedback: feedback,
       userAgent: userAgent,
+      screenshotUrl: image, // Include the image URL in the data
     };
 
     // Now send the data to your background script
@@ -45,10 +47,10 @@ export function sendFeedbackData(
             "Feedback sending failed.",
             chrome.runtime.lastError?.message
           );
-          callback(false);
+          callback(false); // Call the callback with false if there is an error
         } else {
-          console.log("Feedback sent successfully.");
-          callback(true);
+          console.log("Feedback sent successfully: ", response.requestData);
+          callback(true); // Call the callback with true on success
         }
       }
     );

@@ -110,27 +110,62 @@ function showPopup() {
 }
 
 function handleSubmit() {
-  const feedback = popupTextarea.value;
+  const popupContainer = document.getElementById("simplix-popup-container");
+  if (!popupContainer) {
+    console.error("Popup container not found.");
+    return;
+  }
 
-  // Send feedback and handle the callback response
-  sendFeedbackData(feedback, (success) => {
-    if (success) {
-      console.log("Feedback was sent successfully.");
-      // Here you might want to show a success notification to the user
-      showNotification("Feedback sent successfully.", NotificationType.Success);
+  // Hide the popup
+  popupContainer.style.display = "none";
+
+  chrome.runtime.sendMessage({ action: "takeScreenshot" }, (response) => {
+    if (response && response.success) {
+      const imageData = response.screenshotUrl;
+
+      // Step 2: Upload the screenshot to Google Drive
+      chrome.runtime.sendMessage(
+        { action: "uploadToDrive", imageData: imageData },
+        (uploadResponse) => {
+          if (uploadResponse && uploadResponse.success) {
+            const driveFileLink = uploadResponse.driveFileLink;
+            console.log("Upload drive response: ", uploadResponse.imageData);
+
+            // Step 3: Send feedback with the Google Drive link
+            sendFeedbackData(popupTextarea.value, driveFileLink, (success) => {
+              if (success) {
+                showNotification(
+                  "Feedback and screenshot sent successfully.",
+                  NotificationType.Success
+                );
+              } else {
+                console.error("Failed to send feedback with screenshot.");
+                showNotification(
+                  "Failed to send feedback.",
+                  NotificationType.Error
+                );
+              }
+            });
+          } else {
+            console.error(
+              "Failed to upload screenshot to Google Drive.",
+              uploadResponse?.error,
+              uploadResponse?.imageDataParts
+            );
+            showNotification(
+              "Failed to upload screenshot to Google Drive.",
+              NotificationType.Error
+            );
+          }
+        }
+      );
     } else {
-      console.error("Failed to send feedback.");
-      // Here you might want to show an error notification to the user
-      showNotification("Failed to send feedback.", NotificationType.Error);
-    }
-
-    // Whether successful or not, clear the textarea and hide the popup
-    popupTextarea.value = "";
-    const popupContainer = document.getElementById("simplix-popup-container");
-    if (popupContainer) {
-      popupContainer.style.display = "none";
+      console.error("Failed to take a screenshot.", response?.error);
+      showNotification("Failed to take a screenshot.", NotificationType.Error);
     }
   });
+
+  return true; // Necessary for asynchronous response
 }
 
 function showNotification(message: string, type: NotificationType) {
