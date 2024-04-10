@@ -14,7 +14,8 @@ function getEmailFromStorage(callback: (email: string | null) => void) {
 
 export function sendFeedbackData(
   feedback: string,
-  image: string, // Add a parameter for the image URL
+  image64: string,
+  imageBinary: Blob,
   callback: (success: boolean) => void
 ) {
   // First, get the email from storage
@@ -31,7 +32,7 @@ export function sendFeedbackData(
       email: email,
       feedback: feedback,
       userAgent: userAgent,
-      screenshotUrl: image, // Include the image URL in the data
+      imageBinary: image64,
     };
 
     // Now send the data to your background script
@@ -55,4 +56,28 @@ export function sendFeedbackData(
       }
     );
   });
+}
+
+export function convertImage(
+  base64: string,
+  contentType = "",
+  sliceSize = 512
+) {
+  const byteCharacters = atob(base64);
+  const byteArrays = [];
+
+  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+    const slice = byteCharacters.slice(offset, offset + sliceSize);
+    const byteNumbers = new Array(slice.length);
+
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
+  }
+
+  const blob = new Blob(byteArrays, { type: contentType });
+  return blob;
 }

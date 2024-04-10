@@ -1,4 +1,4 @@
-import { sendFeedbackData } from "./actions";
+import { sendFeedbackData, convertImage } from "./actions";
 
 let popupTextarea: HTMLTextAreaElement; // Define the variable with an explicit type
 
@@ -121,51 +121,39 @@ function handleSubmit() {
 
   chrome.runtime.sendMessage({ action: "takeScreenshot" }, (response) => {
     if (response && response.success) {
-      const imageData = response.screenshotUrl;
+      const imageBase64 = response.imageBase64;
+      const imageBinary = convertImage(imageBase64, "image/png");
+      console.log("image data base64 is: ", imageBase64);
+      console.log("image data binary is: ", imageBinary);
 
-      // Step 2: Upload the screenshot to Google Drive
-      chrome.runtime.sendMessage(
-        { action: "uploadToDrive", imageData: imageData },
-        (uploadResponse) => {
-          if (uploadResponse && uploadResponse.success) {
-            const driveFileLink = uploadResponse.driveFileLink;
-            console.log("Upload drive response: ", uploadResponse.imageData);
-
-            // Step 3: Send feedback with the Google Drive link
-            sendFeedbackData(popupTextarea.value, driveFileLink, (success) => {
-              if (success) {
-                showNotification(
-                  "Feedback and screenshot sent successfully.",
-                  NotificationType.Success
-                );
-              } else {
-                console.error("Failed to send feedback with screenshot.");
-                showNotification(
-                  "Failed to send feedback.",
-                  NotificationType.Error
-                );
-              }
-            });
-          } else {
-            console.error(
-              "Failed to upload screenshot to Google Drive.",
-              uploadResponse?.error,
-              uploadResponse?.imageDataParts
-            );
+      // Assuming popupTextarea is defined and accessible in your context
+      sendFeedbackData(
+        popupTextarea.value,
+        imageBase64,
+        imageBinary,
+        (success) => {
+          if (success) {
             showNotification(
-              "Failed to upload screenshot to Google Drive.",
+              "Feedback and screenshot sent successfully.",
+              NotificationType.Success
+            );
+          } else {
+            console.error("Failed to send feedback with screenshot.");
+            showNotification(
+              "Failed to send feedback.",
               NotificationType.Error
             );
           }
         }
       );
     } else {
+      // Handles the scenario where taking a screenshot fails
       console.error("Failed to take a screenshot.", response?.error);
       showNotification("Failed to take a screenshot.", NotificationType.Error);
     }
   });
 
-  return true; // Necessary for asynchronous response
+  return true; // Indicates that the submission was handled
 }
 
 function showNotification(message: string, type: NotificationType) {

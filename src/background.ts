@@ -24,26 +24,6 @@ function getTabURL(
   });
 }
 
-function base64ToBlob(base64: string, contentType = "", sliceSize = 512) {
-  const byteCharacters = atob(base64);
-  const byteArrays = [];
-
-  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-    const slice = byteCharacters.slice(offset, offset + sliceSize);
-    const byteNumbers = new Array(slice.length);
-
-    for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i);
-    }
-
-    const byteArray = new Uint8Array(byteNumbers);
-    byteArrays.push(byteArray);
-  }
-
-  const blob = new Blob(byteArrays, { type: contentType });
-  return blob;
-}
-
 // take screenshot event
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "takeScreenshot") {
@@ -73,7 +53,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           const base64Index = dataUrl.indexOf(",") + 1;
           const base64Data = dataUrl.substring(base64Index);
 
-          sendResponse({ success: true, screenshotUrl: base64Data });
+          sendResponse({ success: true, imageBase64: base64Data });
         }
       }
     );
@@ -86,7 +66,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // send feedback event
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "sendFeedback") {
-    const { feedback, screenshotUrl, email, userAgent } = request.data;
+    const { feedback, imageBinary, email, userAgent } = request.data;
 
     // You'll need to convert the screenshot data URL to a Blob if you're sending as FormData
     // For simplicity, we're sending the data URL directly as a string in this example
@@ -105,7 +85,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         email: email,
         feedback: feedback,
         userAgent: userAgent,
-        screenshot: screenshotUrl,
+        screenshot: imageBinary,
         domain: domain,
         relativeUrl: relativeURL,
       };
@@ -132,33 +112,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
   }
 });
-
-/// Upload to drive event
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "uploadToDrive") {
-    const imageDataBase64 = request.imageData; // Get the base64 part
-    const blob = base64ToBlob(imageDataBase64, "image/png");
-    sendResponse({ success: true, driveFileLink: "", imageData: blob });
-    // Call the function to upload this blob to Google Drive
-    uploadToGoogleDrive(blob)
-      .then((driveFileLink) => {
-        sendResponse({ success: true, driveFileLink, imageData: blob });
-      })
-      .catch((error) => {
-        sendResponse({ success: false, error: error.message, imageData: blob });
-      });
-  }
-
-  return true; // Keep the messaging channel open for asynchronous response
-});
-
-async function uploadToGoogleDrive(blob: Blob): Promise<string> {
-  // Implement the upload logic here
-  // You would typically make an API call to Google Drive's API
-  // with appropriate headers, method, and body using fetch or another HTTP client.
-  // Then you would extract the link to the uploaded file from the response
-  // and return that link.
-
-  // This is a placeholder return statement, you will replace this with actual implementation
-  return "The link to the uploaded file on Google Drive";
-}
