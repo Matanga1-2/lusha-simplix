@@ -1,6 +1,7 @@
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const Dotenv = require("dotenv-webpack");
+require("dotenv").config();
 
 const path = require("path");
 const outputPath = "dist";
@@ -25,6 +26,14 @@ module.exports = {
   },
   resolve: {
     extensions: [".ts", ".js"],
+    fallback: {
+      path: require.resolve("path-browserify"),
+      os: require.resolve("os-browserify/browser"),
+      crypto: require.resolve("crypto-browserify"),
+      buffer: require.resolve("buffer/"),
+      stream: require.resolve("stream-browserify"),
+      vm: require.resolve("vm-browserify"),
+    },
   },
   module: {
     rules: [

@@ -6,3 +6,17 @@ dist/
 
 # Environment variables
 .env
+
+# Virtual environment
+venv/
+
+# Logs
+*.log
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Editor configurations
+.vscode/
+.idea/

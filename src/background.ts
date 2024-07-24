@@ -1,3 +1,11 @@
+const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL;
+
+if (!zapierWebhookUrl) {
+  throw new Error(
+    "Zapier webhook URL is not defined in the environment variables."
+  );
+}
+
 chrome.runtime.onMessage.addListener((request, sender) => {});
 
 // A type guard function to check if the caught object is an Error
@@ -35,7 +43,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const { domain, relativeURL } = urlDetails;
 
         // Perform the fetch operation with URL details
-        fetch("https://hooks.zapier.com/hooks/catch/14134904/3pqoek3/", {
+        fetch(zapierWebhookUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
